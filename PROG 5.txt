@@ -1,0 +1,569 @@
+PROG 5 ::
+
+DEPENDENCIES : WEB,JPA,VALIDATION,MYSQLDRIVER
+
+//CONTROLLER PACKAGE : com.example.prog5.Controller
+CLASS:EmployeeController.java
+
+## CODE 
+package com.example.prog5.Controller;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.prog5.repository.EmployeeRepository;
+import com.example.prog5.model.Employee;
+
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/api/employees")
+public class EmployeeController {
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
+    // 🔹 CREATE EMPLOYEE (POST)
+    @PostMapping
+    public ResponseEntity<?> createEmployee(
+            @Valid @RequestBody Employee employee,
+            BindingResult result) {
+
+        if (result.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+
+            for (FieldError error : result.getFieldErrors()) {
+                errors.put(error.getField(), error.getDefaultMessage());
+            }
+
+            return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        }
+
+        Employee savedEmployee = employeeRepository.save(employee);
+        return new ResponseEntity<>(savedEmployee, HttpStatus.CREATED);
+    }
+
+    // 🔹 UPDATE EMPLOYEE (PUT)
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateEmployee(
+            @PathVariable Long id,
+            @Valid @RequestBody Employee employee,
+            BindingResult result) {
+
+        if (result.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+
+            for (FieldError error : result.getFieldErrors()) {
+                errors.put(error.getField(), error.getDefaultMessage());
+            }
+
+            return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        }
+
+        return employeeRepository.findById(id).map(existingEmployee -> {
+
+            existingEmployee.setName(employee.getName());
+            existingEmployee.setAge(employee.getAge());
+            existingEmployee.setEmail(employee.getEmail());
+
+            Employee updated = employeeRepository.save(existingEmployee);
+
+            return new ResponseEntity<>(updated, HttpStatus.OK);
+
+        }).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    // 🔹 GET ALL EMPLOYEES
+    @GetMapping
+    public List<Employee> getAllEmployees() {
+        return employeeRepository.findAll();
+    }
+
+@DeleteMapping("/{id}")
+public ResponseEntity<?> deleteEmployee(@PathVariable Long id) {
+    return employeeRepository.findById(id).map(emp -> {
+        employeeRepository.delete(emp);
+        return new ResponseEntity<>("Deleted Successfully", HttpStatus.OK);
+    }).orElseGet(() -> new ResponseEntity<>("Not Found", HttpStatus.NOT_FOUND));
+}
+}
+
+
+
+PACKAGE 2 : 
+
+//MODEL PACKAGE : com.example.prog5.model
+CLASS:Employee.java
+
+### CODE 
+package com.example.prog5.model;
+	import jakarta.persistence.*;
+	import jakarta.validation.constraints.*;
+
+	@Entity
+	@Table(name = "employees")
+	public class Employee {
+
+	    @Id
+	    @GeneratedValue(strategy = GenerationType.IDENTITY)
+	    private Long id;
+
+	    @NotEmpty(message = "Name is required")
+	    @Size(min = 2, message = "Name should have at least 2 characters")
+	    private String name;
+
+	    @NotNull(message = "Age is required")
+	    private Integer age;
+
+	    @NotEmpty(message = "Email is required")
+	    @Email(message = "Email should be valid")
+	    private String email;
+
+	    // Getters and Setters
+
+	    public Long getId() {
+	        return id;
+	    }
+
+	    public void setId(Long id) {
+	        this.id = id;
+	    }
+
+	    public String getName() {
+	        return name;
+	    }
+
+	    public void setName(String name) {
+	        this.name = name;
+	    }
+
+	    public Integer getAge() {
+	        return age;
+	    }
+
+	    public void setAge(Integer age) {
+	        this.age = age;
+	    }
+
+	    public String getEmail() {
+	        return email;
+	    }
+
+	    public void setEmail(String email) {
+	        this.email = email;
+	    }
+}
+
+
+
+3RD PACKAGE :com.example.prog5.repository
+INTERFACE : EmployeeRepository
+
+### CODE :
+package com.example.prog5.repository;
+
+	import org.springframework.data.jpa.repository.JpaRepository;
+
+	import com.example.prog5.model.Employee;
+		
+
+			public interface EmployeeRepository extends JpaRepository<Employee, Long> {
+	}
+
+
+
+TO RUN ::
+Run the main application 
+goto postman : perform post,put,get : 
+
+http:// localhost:8080/api/employees
+
+
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+6th PROGRAM 
+
+
+DEPENDENCIES :
+H2,
+JPA,
+WEB
+
+TOTAL PACKAGES 4 : MAIN,ENTITY,REPOSITORY,SERVICE
+
+// PACKAGE 1 : :com.example.prog6.entity
+CLASS : Student.java
+
+package com.example.prog6.entity;
+
+	import jakarta.persistence.Entity;
+	import jakarta.persistence.Id;
+
+	@Entity
+	public class Student {
+
+	    @Id
+	    private int id;
+
+	    private String name;
+	    private int age;
+
+	    public int getId() {
+	        return id;
+	    }
+
+	    public void setId(int id) {
+	        this.id = id;
+	    }
+
+	    public String getName() {
+	        return name;
+	    }
+
+	    public void setName(String name) {
+	        this.name = name;
+	    }
+
+	    public int getAge() {
+	        return age;
+	    }
+
+	    public void setAge(int age) {
+	        this.age = age;
+	    }
+	}
+PACKAGE 2 : com.example.prog6.repository
+INTERFACE : SudentRepository.java
+
+
+package com.example.prog6.repository;
+
+
+	import org.springframework.data.repository.CrudRepository;
+
+	import com.example.prog6.entity.Student;
+
+	public interface StudentRepository extends CrudRepository<Student, Integer> {
+
+	}
+
+PACKAGE 3 : com.example.prog6.service
+CLASS: App.java
+
+
+package com.example.prog6.service;
+
+import java.util.Optional;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+import com.example.prog6.entity.Student;
+import com.example.prog6.repository.StudentRepository;
+
+@Component
+public class App implements CommandLineRunner {
+
+    private final StudentRepository repo;
+
+    public App(StudentRepository repo) {
+        this.repo = repo;
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+
+        // INSERT
+        Student s = new Student();
+
+        s.setId(1);
+        s.setName("Ram");
+        s.setAge(20);
+
+        repo.save(s);
+
+        System.out.println("Student Inserted");
+
+        // SELECT
+        Optional<Student> st = repo.findById(1);
+
+        if (st.isPresent()) {
+            System.out.println("Student Name: " + st.get().getName());
+        }
+
+        // UPDATE
+        if (st.isPresent()) {
+
+            Student updateStudent = st.get();
+
+            updateStudent.setAge(22);
+
+            repo.save(updateStudent);
+
+            System.out.println("Student Updated");
+        }
+    }
+}
+
+
+APPLICATION PROPERTIES :
+
+spring.application.name=prog6
+server.port=8086
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=mvj@123
+
+spring.h2.console.enabled=true
+
+spring.jpa.hibernate.ddl-auto=update
+
+spring.jpa.show-sql=true
+
+TO RUN : RUN THE MAIN APPLICATION->>>> THEN OPEN BROWSER :>>>http://localhost:8080/h2-console
+CLICK ON STUDENT IN LEFT PANEL... AND ADD THE FOLLOWING COMMAND AND PERFORM THE OPERATIONS
+INSERT: 
+INSERT INTO STUDENT VALUES(1,20,'Ram');
+SELECT:
+SELECT * FROM STUDENT;
+UPDATE:
+UPDATE STUDENT SET AGE=22 WHERE ID=1;
+DELETE:
+DELETE FROM STUDENT WHERE ID=1;
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+8)package com.example.prgm8.controller;
+
+  import org.springframework.web.bind.annotation.GetMapping;
+  import org.springframework.web.bind.annotation.RequestMapping;
+  import org.springframework.web.bind.annotation.RestController;
+
+  @RestController
+  @RequestMapping("/api")
+  public class HelloController {
+
+    @GetMapping("/hello")
+     public String sayHello() {
+     return "Hello from Spring Boot docker!";
+    }
+
+   }
+
+    Dockerfile 
+FROM eclipse-temurin:17-jdk-alphine
+
+WORKDIR /app
+
+COPY target/prgm8-0.0.1-SNAPSHOT.jar app.jar
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
+commands to run
+In the Goals section, type: clean package -DskipTests
+docker build -t prgm8 .
+docker run -p 8080:8080 prgm8
+to run http://localhost:8080/api/hello
+#######################################################################
+FOR ALL PROGRAMS 
+DEPENDENCIES : WEB,JPA,VALIDATION,H2
+
+
+package : lab.controller 
+class : StudentController 
+
+package com.example.lab.controller;
+
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import com.example.lab.entity.Student;
+import com.example.lab.repository.StudentRepository;
+
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/students")
+public class StudentController {
+
+    @Autowired
+    private StudentRepository repo;
+
+    // INSERT
+    @PostMapping
+    public Object addStudent(@Valid @RequestBody Student s,
+                             BindingResult result) {
+
+        if(result.hasErrors()) {
+            return result.getAllErrors().get(0).getDefaultMessage();
+        }
+
+        return repo.save(s);
+    }
+
+    // SELECT
+    @GetMapping("/{id}")
+    public Optional<Student> getStudent(@PathVariable int id) {
+        return repo.findById(id);
+    }
+
+    // UPDATE
+    @PutMapping("/{id}")
+    public Object updateStudent(@PathVariable int id,
+                                @Valid @RequestBody Student s,
+                                BindingResult result) {
+
+        if(result.hasErrors()) {
+            return result.getAllErrors().get(0).getDefaultMessage();
+        }
+
+        Student st = repo.findById(id).get();
+
+        st.setName(s.getName());
+        st.setAge(s.getAge());
+        st.setEmail(s.getEmail());
+
+        return repo.save(st);
+    }
+
+    // DELETE
+    @DeleteMapping("/{id}")
+    public String deleteStudent(@PathVariable int id) {
+
+        repo.deleteById(id);
+
+        return "Deleted Successfully";
+    }
+}
+
+PACKAGE : lab.entity
+CLASS : Student.java
+
+package com.example.lab.entity;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+
+@Entity
+public class Student {
+
+    @Id
+    private int id;
+
+    @NotEmpty(message = "Name is required")
+    private String name;
+
+    @NotNull(message = "Age is required")
+    private Integer age;
+
+    @Email(message = "Enter valid email")
+    private String email;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+}
+
+ PACKAGE : lab.repository
+INTERFACE: StudentRepository
+
+package com.example.lab.repository;
+
+import org.springframework.data.repository.CrudRepository;
+
+import com.example.lab.entity.Student;
+
+public interface StudentRepository extends CrudRepository<Student, Integer> {
+
+}
+PACKAGE : lab.service
+CLASS : App
+
+package com.example.lab.service;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+@Component
+public class App implements CommandLineRunner {
+
+    @Override
+    public void run(String... args) throws Exception {
+
+        System.out.println("CRUD Operations Ready");
+    }
+}
+
+
+
+APPLICATION PROPERTIES
+spring.application.name=lab
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+
+spring.h2.console.enabled=true
+
+spring.jpa.hibernate.ddl-auto=update
+
+spring.jpa.show-sql=true
+server.port=8089
+
+
+
+
+
+
+
+
+
